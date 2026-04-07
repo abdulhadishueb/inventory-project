@@ -1,3 +1,4 @@
+from services.external_api import get_product_from_api
 from flask import Flask, request, jsonify
 from data import inventory
 
@@ -76,6 +77,25 @@ def delete_item(item_id):
 
     return jsonify({"error": "Item not found"}), 404
 
+
+@app.route("/inventory/fetch/<barcode>", methods=["GET"])
+def fetch_product(barcode):
+    product = get_product_from_api(barcode)
+
+    if "error" in product:
+        return jsonify(product), 404
+
+    new_item = {
+        "id": generate_id(),
+        "name": product["name"],
+        "brand": product["brand"],
+        "ingredients": product["ingredients"],
+        "price": 0,
+        "stock": 0
+    }
+
+    inventory.append(new_item)
+    return jsonify(new_item), 201
 
 if __name__ == "__main__":
     app.run(debug=True)
